@@ -7,14 +7,14 @@ const app = express();
 const path = require("path");
 app.use(
   cors({
-    origin: `http://localhost:${process.env.FRONTEND_PORT}`,
+    origin: `${process.env.FRONTEND_PORT}`,
   })
 );
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: `http://localhost:${process.env.FRONTEND_PORT}`,
+    origin: `${process.env.FRONTEND_PORT}`,
     methods: ["GET", "POST"],
   },
 });
@@ -25,7 +25,6 @@ io.on("connection", (socket) => {
   socket.on("location-send", (data) => {
     io.emit("recieve", { id: socket.id, ...data });
     console.log(data);
-    
   });
 
   socket.on("disconnect", () => {
