@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
-import NameForm from "./NameForm"; // Import the NameForm component
 import { Modal } from "antd";
 import "antd/dist/reset.css";
 
@@ -31,8 +30,6 @@ function MapRender() {
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
-  const [userName, setUserName] = useState(null); // User name state
-  const [showNameForm, setShowNameForm] = useState(true); // Show NameForm state
   const mapRef = useRef(null);
   const socket = useRef(null); // Keep socket instance in a ref
 
@@ -68,7 +65,7 @@ function MapRender() {
     }
 
     socket.current.on("recieve", (data) => {
-      const { id, userName, latitude, longitude } = data;
+      const { id, latitude, longitude } = data;
 
       setMarkers((prevMarkers) => {
         const updatedMarkers = prevMarkers.filter((marker) => marker.id !== id);
@@ -97,7 +94,6 @@ function MapRender() {
             lat: latitude,
             lng: longitude,
             marker: newMarker,
-            name: userName,
           },
         ];
       });
@@ -127,25 +123,10 @@ function MapRender() {
       });
     });
 
-    socket.current.on("update-name", ({ id, name }) => {
-      setMarkers((prevMarkers) => {
-        return prevMarkers.map((markerData) =>
-          markerData.id === id ? { ...markerData, name } : markerData
-        );
-      });
-    });
-
     return () => {
       socket.current.disconnect();
     };
   }, [apiUrl]);
-
-  const handleNameSubmit = (name) => {
-    setUserName(name);
-    setShowNameForm(false);
-
-    socket.current.emit("update-name", { name });
-  };
 
   const handleOk = () => {
     setIsModalVisible(false);
@@ -157,7 +138,6 @@ function MapRender() {
         <Loader />
       ) : (
         <>
-          {showNameForm && <NameForm onSubmit={handleNameSubmit} />}
           <MapContainer
             ref={mapRef}
             center={location}
@@ -178,9 +158,7 @@ function MapRender() {
                 icon={markerData.marker.options.icon}
               >
                 <Tooltip permanent direction="top" offset={[0, -20]}>
-                  {markerData.name
-                    ? `User Name: ${markerData.name}`
-                    : `User ID: ${markerData.id}`}
+                  {`User ID: ${markerData.id}`}
                   <br />
                   Latitude: {markerData.lat}, Longitude: {markerData.lng}
                 </Tooltip>

@@ -19,8 +19,6 @@ const io = new Server(server, {
   },
 });
 
-// Store user names
-const userNames = {};
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -51,19 +49,13 @@ io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
   socket.on("location-send", (data) => {
-    const userName = userNames[socket.id] || "Unknown";
-    io.emit("recieve", { id: socket.id, userName, ...data });
+    io.emit("recieve", { id: socket.id, ...data });
     console.log(data);
-  });
-
-  socket.on("update-name", (data) => {
-    userNames[socket.id] = data.name;
-    io.emit("update-name", { id: socket.id, name: data.name });
   });
 
   socket.on("disconnect", () => {
     io.emit("user-disconnect", socket.id);
-    delete userNames[socket.id]; // Clean up user names
+    delete userNames[socket.id]; 
   });
 });
 
