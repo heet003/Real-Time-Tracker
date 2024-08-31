@@ -6,12 +6,25 @@ import L, { marker } from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
 
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Set the custom icon configuration
+const customIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 function MapRender() {
   const apiUrl = import.meta.env.VITE_DEPLOY_URL;
 
-
-  const [location, setLocation] = useState([51.505, -0.09]); 
+  const [location, setLocation] = useState([51.505, -0.09]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
@@ -129,6 +142,7 @@ function MapRender() {
             <Marker
               key={markerData.id}
               position={[markerData.lat, markerData.lng]}
+              icon={markerData.marker.options.icon}
             >
               <Popup>
                 User ID: {markerData.id} <br /> Latitude: {markerData.lat},
