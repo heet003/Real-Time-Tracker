@@ -2,9 +2,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L, { marker } from "leaflet";
+import L from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
+import { Modal } from "antd";
+import "antd/dist/reset.css";
 
 const markerIcon2x = "./Images/marker-icon-2x.png";
 const markerIcon = "./Images/marker-icon.png";
@@ -27,6 +29,7 @@ function MapRender() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -44,6 +47,7 @@ function MapRender() {
           console.error(error);
           setError(error);
           setLoading(false);
+          setIsModalVisible(true); // Show modal on error
         },
         {
           enableHighAccuracy: true,
@@ -51,20 +55,22 @@ function MapRender() {
         }
       );
     } else {
-      setError(new Error("Geolocation is not supported by this browser."));
+      const geoError = new Error(
+        "Geolocation is not supported by this browser."
+      );
+      setError(geoError);
       setLoading(false);
+      setIsModalVisible(true); // Show modal on error
     }
 
     socket.on("recieve", (data) => {
       const { id, latitude, longitude } = data;
-      console.log(`Received location from ${id}: ${latitude}, ${longitude}`);
 
       setMarkers((prevMarkers) => {
         const updatedMarkers = prevMarkers.filter((marker) => marker.id !== id);
         const map = mapRef.current;
 
         if (map) {
-          // Remove the old marker if it exists
           const existingMarker =
             map._layers[
               Object.keys(map._layers).find(
@@ -76,7 +82,6 @@ function MapRender() {
           }
         }
 
-        // Add new marker
         const newMarker = L.marker([latitude, longitude], {
           id,
           icon: customIcon,
@@ -117,41 +122,56 @@ function MapRender() {
     };
   }, []);
 
+  // Function to handle modal OK button
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
   return (
     <div className="w-full h-screen">
       {loading ? (
         <Loader />
-      ) : error ? (
-        <div className="text-red-500">
-          Error: {error.message || "Failed to retrieve location"}
-        </div>
       ) : (
-        <MapContainer
-          ref={mapRef}
-          center={location}
-          zoom={16}
-          style={{ height: "100vh", width: "100vw" }}
-          whenCreated={(map) => {
-            mapRef.current = map;
-          }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; Heet Boda"
-          />
-          {markers.map((markerData) => (
-            <Marker
-              key={markerData.id}
-              position={[markerData.lat, markerData.lng]}
-              icon={markerData.marker.options.icon}
-            >
-              <Popup>
-                User ID: {markerData.id} <br /> Latitude: {markerData.lat},
-                Longitude: {markerData.lng}.
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        <>
+          <MapContainer
+            ref={mapRef}
+            center={location}
+            zoom={16}
+            style={{ height: "100vh", width: "100vw" }}
+            whenCreated={(map) => {
+              mapRef.current = map;
+            }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; Heet Boda"
+            />
+            {markers.map((markerData) => (
+              <Marker
+                key={markerData.id}
+                position={[markerData.lat, markerData.lng]}
+                icon={markerData.marker.options.icon}
+              >
+                <Popup>
+                  User ID: {markerData.id} <br /> Latitude: {markerData.lat},
+                  Longitude: {markerData.lng}.
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+
+          {/* Error Modal */}
+          <Modal
+            title="Error"
+            visible={isModalVisible}
+            onOk={handleOk}
+            onCancel={handleOk}
+            okText="OK"
+            cancelButtonProps={{ style: { display: "none" } }}
+          >
+            <p>{error?.message || "Failed to retrieve location"}</p>
+          </Modal>
+        </>
       )}
     </div>
   );
