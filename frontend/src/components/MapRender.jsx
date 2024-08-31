@@ -29,18 +29,17 @@ function MapRender() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
+  const [isModalVisible, setIsModalVisible] = useState(false); 
   const mapRef = useRef(null);
-  const socket = useRef(null); // Keep socket instance in a ref
 
   useEffect(() => {
-    socket.current = io(`${apiUrl}`);
+    const socket = io(`${apiUrl}`);
 
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          socket.current.emit("location-send", { latitude, longitude });
+          socket.emit("location-send", { latitude, longitude });
           setLocation([latitude, longitude]);
           setLoading(false);
         },
@@ -64,7 +63,7 @@ function MapRender() {
       setIsModalVisible(true);
     }
 
-    socket.current.on("recieve", (data) => {
+    socket.on("recieve", (data) => {
       const { id, latitude, longitude } = data;
 
       setMarkers((prevMarkers) => {
@@ -99,7 +98,7 @@ function MapRender() {
       });
     });
 
-    socket.current.on("user-disconnect", (id) => {
+    socket.on("user-disconnect", (id) => {
       setMarkers((prevMarkers) => {
         const map = mapRef.current;
         const updatedMarkers = prevMarkers.filter((markerData) => {
@@ -124,7 +123,7 @@ function MapRender() {
     });
 
     return () => {
-      socket.current.disconnect();
+      socket.disconnect();
     };
   }, [apiUrl]);
 
