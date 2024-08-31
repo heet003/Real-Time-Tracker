@@ -33,15 +33,8 @@ const NameForm = ({ onSubmit }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name"
-          className="w-72" // Adjust width as needed
+          className="w-72" 
         />
-        <Button
-          type="primary"
-          onClick={handleOk}
-          className="w-full"
-        >
-          Submit
-        </Button>
       </div>
     </Modal>
   );
