@@ -8,7 +8,7 @@ import Loader from "./Loader";
 
 
 function MapRender() {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_DEPLOY_URL;
 
 
   const [location, setLocation] = useState([51.505, -0.09]); 

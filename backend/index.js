@@ -4,32 +4,23 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
-
-const allowedOrigins = [
-  `${process.env.FRONTEND_DEPLOY_URL}`,
-  `${process.env.FRONTEND_PORT}`,
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-  })
-);
-
 const server = http.createServer(app);
+
+
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: `${process.env.FRONTEND_DEPLOY_URL}`,
     methods: ["GET", "POST"],
   },
 });
+
+app.use(
+  cors({
+    origin: `${process.env.FRONTEND_DEPLOY_URL}`,
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 io.on("connection", (socket) => {
   console.log(socket.id);
