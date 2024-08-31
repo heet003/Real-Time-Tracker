@@ -1,10 +1,11 @@
 /* eslint-disable */
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
+import NameForm from "./NameForm"; // Import the NameForm component
 import { Modal } from "antd";
 import "antd/dist/reset.css";
 
@@ -30,6 +31,8 @@ function MapRender() {
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
+  const [userName, setUserName] = useState(null); // User name state
+  const [showNameForm, setShowNameForm] = useState(true); // Show NameForm state
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -88,7 +91,7 @@ function MapRender() {
         }).addTo(map);
         return [
           ...updatedMarkers,
-          { id, lat: latitude, lng: longitude, marker: newMarker },
+          { id, lat: latitude, lng: longitude, marker: newMarker, name: "" },
         ];
       });
     });
@@ -122,17 +125,22 @@ function MapRender() {
     };
   }, []);
 
-  // Function to handle modal OK button
+  const handleNameSubmit = (name) => {
+    setUserName(name);
+    setShowNameForm(false); // Hide the NameForm after submission
+  };
+
   const handleOk = () => {
     setIsModalVisible(false);
   };
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen relative">
       {loading ? (
         <Loader />
       ) : (
         <>
+          {showNameForm && <NameForm onSubmit={handleNameSubmit} />}
           <MapContainer
             ref={mapRef}
             center={location}
@@ -146,15 +154,18 @@ function MapRender() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution="&copy; Heet Boda"
             />
-            {markers.map((markerData) => (
+           {markers.map((markerData) => (
               <Marker
                 key={markerData.id}
                 position={[markerData.lat, markerData.lng]}
                 icon={markerData.marker.options.icon}
               >
                 <Tooltip permanent direction="top" offset={[0, -20]}>
-                  User ID: {markerData.id} <br /> Latitude: {markerData.lat},
-                  Longitude: {markerData.lng}.
+                  {userName
+                    ? `User Name: ${userName}`
+                    : `User ID: ${markerData.id}`}{" "}
+                  <br />
+                  Latitude: {markerData.lat}, Longitude: {markerData.lng}
                 </Tooltip>
               </Marker>
             ))}
