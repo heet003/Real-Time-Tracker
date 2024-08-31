@@ -55,7 +55,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     io.emit("user-disconnect", socket.id);
-    delete userNames[socket.id]; 
   });
 });
 
