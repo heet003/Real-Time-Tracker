@@ -9,14 +9,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: `${process.env.FRONTEND_DEPLOY_URL}`,
+    origin: process.env.FRONTEND_DEPLOY_URL,
     methods: ["GET", "POST"],
   },
 });
 
 app.use(
   cors({
-    origin: `${process.env.FRONTEND_DEPLOY_URL}`,
+    origin: process.env.FRONTEND_DEPLOY_URL,
     methods: ["GET", "POST"],
     credentials: true,
   })
