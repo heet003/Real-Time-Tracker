@@ -8,8 +8,8 @@ const server = http.createServer(app);
 
 
 const allowedOrigins = [
+  process.env.FRONTEND_DEPLOY_URL,
   "https://real-time-tracker-zw78.onrender.com/",
-  process.env.FRONTEND_PORT,
 ];
 
 const io = new Server(server, {
