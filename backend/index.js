@@ -6,25 +6,28 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
-
 const allowedOrigins = [
   process.env.FRONTEND_DEPLOY_URL,
-  "https://real-time-tracker-zw78.onrender.com/",
+  "https://real-time-tracker-zw78.onrender.com",
 ];
 
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
+
+// Store user names
+const userNames = {};
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
     res.setHeader(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, Authorization"
@@ -45,15 +48,22 @@ app.use(
 );
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
+  console.log(`User connected: ${socket.id}`);
 
   socket.on("location-send", (data) => {
-    io.emit("recieve", { id: socket.id, ...data });
+    const userName = userNames[socket.id] || "Unknown";
+    io.emit("recieve", { id: socket.id, userName, ...data });
     console.log(data);
+  });
+
+  socket.on("update-name", (data) => {
+    userNames[socket.id] = data.name;
+    io.emit("update-name", { id: socket.id, name: data.name });
   });
 
   socket.on("disconnect", () => {
     io.emit("user-disconnect", socket.id);
+    delete userNames[socket.id]; // Clean up user names
   });
 });
 

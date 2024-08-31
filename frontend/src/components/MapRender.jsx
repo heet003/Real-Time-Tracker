@@ -1,11 +1,10 @@
-/* eslint-disable*/
 import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
-import NameForm from "./NameForm"; 
+import NameForm from "./NameForm"; // Import the NameForm component
 import { Modal } from "antd";
 import "antd/dist/reset.css";
 
@@ -25,24 +24,25 @@ const customIcon = new L.Icon({
 
 function MapRender() {
   const apiUrl = import.meta.env.VITE_DEPLOY_URL;
-  const socket = io(`${apiUrl}`);
 
   const [location, setLocation] = useState([51.505, -0.09]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false); 
-  const [userName, setUserName] = useState(null); 
-  const [showNameForm, setShowNameForm] = useState(true); 
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
+  const [userName, setUserName] = useState(null); // User name state
+  const [showNameForm, setShowNameForm] = useState(true); // Show NameForm state
   const mapRef = useRef(null);
-
+  const socket = useRef(null); // Keep socket instance in a ref
 
   useEffect(() => {
+    socket.current = io(`${apiUrl}`);
+
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          socket.emit("location-send", { latitude, longitude });
+          socket.current.emit("location-send", { latitude, longitude });
           setLocation([latitude, longitude]);
           setLoading(false);
         },
@@ -66,7 +66,7 @@ function MapRender() {
       setIsModalVisible(true);
     }
 
-    socket.on("recieve", (data) => {
+    socket.current.on("recieve", (data) => {
       const { id, userName, latitude, longitude } = data;
 
       setMarkers((prevMarkers) => {
@@ -102,7 +102,7 @@ function MapRender() {
       });
     });
 
-    socket.on("user-disconnect", (id) => {
+    socket.current.on("user-disconnect", (id) => {
       setMarkers((prevMarkers) => {
         const map = mapRef.current;
         const updatedMarkers = prevMarkers.filter((markerData) => {
@@ -126,7 +126,7 @@ function MapRender() {
       });
     });
 
-    socket.on("update-name", ({ id, name }) => {
+    socket.current.on("update-name", ({ id, name }) => {
       setMarkers((prevMarkers) => {
         return prevMarkers.map((markerData) =>
           markerData.id === id ? { ...markerData, name } : markerData
@@ -135,15 +135,15 @@ function MapRender() {
     });
 
     return () => {
-      socket.disconnect();
+      socket.current.disconnect();
     };
-  }, []);
+  }, [apiUrl]);
 
   const handleNameSubmit = (name) => {
     setUserName(name);
     setShowNameForm(false);
 
-    socket.emit("update-name", { name });
+    socket.current.emit("update-name", { name });
   };
 
   const handleOk = () => {
@@ -174,7 +174,7 @@ function MapRender() {
               <Marker
                 key={markerData.id}
                 position={[markerData.lat, markerData.lng]}
-                icon={markerData.marker.options.icon || "ALT"}
+                icon={markerData.marker.options.icon}
               >
                 <Tooltip permanent direction="top" offset={[0, -20]}>
                   {markerData.name
