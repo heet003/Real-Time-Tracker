@@ -5,18 +5,38 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
-
+const allowedOrigins = [
+  process.env.FRONTEND_DEPLOY_URL,
+  process.env.FRONTEND_PORT,
+];
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_DEPLOY_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_DEPLOY_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   })
