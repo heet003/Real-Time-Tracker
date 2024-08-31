@@ -6,11 +6,10 @@ import L, { marker } from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
 
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+const markerIcon2x = "./Images/marker-icon-2x.png";
+const markerIcon = "./Images/marker-icon.png";
+const markerShadow = "./Images/marker-shadow.png";
 
-// Set the custom icon configuration
 const customIcon = new L.Icon({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
@@ -78,13 +77,15 @@ function MapRender() {
         }
 
         // Add new marker
-        const newMarker = L.marker([latitude, longitude], { id }).addTo(map);
+        const newMarker = L.marker([latitude, longitude], {
+          id,
+          icon: customIcon,
+        }).addTo(map);
         return [
           ...updatedMarkers,
           { id, lat: latitude, lng: longitude, marker: newMarker },
         ];
       });
-      console.log(markers);
     });
 
     socket.on("user-disconnect", (id) => {
