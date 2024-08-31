@@ -5,15 +5,17 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
+
 const allowedOrigins = [
   process.env.FRONTEND_DEPLOY_URL,
-  process.env.FRONTEND_PORT,
+  "https://real-time-tracker-zw78.onrender.com",
 ];
 
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -22,7 +24,7 @@ app.use((req, res, next) => {
   if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
     res.setHeader(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, Authorization"
