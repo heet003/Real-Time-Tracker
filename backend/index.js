@@ -19,6 +19,8 @@ const io = new Server(server, {
   },
 });
 
+const userNames = {};
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -45,15 +47,22 @@ app.use(
 );
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
+  console.log(`User connected: ${socket.id}`);
 
   socket.on("location-send", (data) => {
-    io.emit("recieve", { id: socket.id, ...data });
+    const userName = userNames[socket.id] || "Unknown";
+    io.emit("recieve", { id: socket.id, userName, ...data });
     console.log(data);
+  });
+
+  socket.on("update-name", (data) => {
+    userNames[socket.id] = data.name;
+    io.emit("update-name", { id: socket.id, name: data.name });
   });
 
   socket.on("disconnect", () => {
     io.emit("user-disconnect", socket.id);
+    delete userNames[socket.id]; 
   });
 });
 

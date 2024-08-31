@@ -1,11 +1,11 @@
-/* eslint-disable */
+/* eslint-disable*/
 import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import Loader from "./Loader";
-import NameForm from "./NameForm"; // Import the NameForm component
+import NameForm from "./NameForm"; 
 import { Modal } from "antd";
 import "antd/dist/reset.css";
 
@@ -25,24 +25,24 @@ const customIcon = new L.Icon({
 
 function MapRender() {
   const apiUrl = import.meta.env.VITE_DEPLOY_URL;
+  const socket = io(`${apiUrl}`);
 
   const [location, setLocation] = useState([51.505, -0.09]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
-  const [userName, setUserName] = useState(null); // User name state
-  const [showNameForm, setShowNameForm] = useState(true); // Show NameForm state
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [userName, setUserName] = useState(null); 
+  const [showNameForm, setShowNameForm] = useState(true); 
   const mapRef = useRef(null);
 
-  useEffect(() => {
-    const socket = io(`${apiUrl}`);
 
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          socket.emit("location-send", { latitude, longitude, userName });
+          socket.emit("location-send", { latitude, longitude });
           setLocation([latitude, longitude]);
           setLoading(false);
         },
@@ -63,7 +63,7 @@ function MapRender() {
       );
       setError(geoError);
       setLoading(false);
-      setIsModalVisible(true); // Show modal on error
+      setIsModalVisible(true);
     }
 
     socket.on("recieve", (data) => {
@@ -87,7 +87,6 @@ function MapRender() {
 
         const newMarker = L.marker([latitude, longitude], {
           id,
-          name: userName,
           icon: customIcon,
         }).addTo(map);
         return [
@@ -142,9 +141,8 @@ function MapRender() {
 
   const handleNameSubmit = (name) => {
     setUserName(name);
-    setShowNameForm(false); 
+    setShowNameForm(false);
 
-    const socket = io(`${apiUrl}`);
     socket.emit("update-name", { name });
   };
 
