@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io } from "socket.io-client";
@@ -152,10 +152,10 @@ function MapRender() {
                 position={[markerData.lat, markerData.lng]}
                 icon={markerData.marker.options.icon}
               >
-                <Popup>
+                <Tooltip permanent direction="top" offset={[0, -20]}>
                   User ID: {markerData.id} <br /> Latitude: {markerData.lat},
                   Longitude: {markerData.lng}.
-                </Popup>
+                </Tooltip>
               </Marker>
             ))}
           </MapContainer>
