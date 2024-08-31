@@ -24,7 +24,7 @@ const customIcon = new L.Icon({
 });
 
 function MapRender() {
-  const apiUrl = import.meta.env.VITE_DEPLOY_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
   const socket = io(`${apiUrl}`);
 
   const [location, setLocation] = useState([51.505, -0.09]);
@@ -174,7 +174,7 @@ function MapRender() {
               <Marker
                 key={markerData.id}
                 position={[markerData.lat, markerData.lng]}
-                icon={markerData.marker.options.icon}
+                icon={markerData.marker.options.icon || "ALT"}
               >
                 <Tooltip permanent direction="top" offset={[0, -20]}>
                   {markerData.name
