@@ -42,7 +42,7 @@ function MapRender() {
       navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          socket.emit("location-send", { latitude, longitude });
+          socket.emit("location-send", { latitude, longitude, userName });
           setLocation([latitude, longitude]);
           setLoading(false);
         },
@@ -50,7 +50,7 @@ function MapRender() {
           console.error(error);
           setError(error);
           setLoading(false);
-          setIsModalVisible(true); // Show modal on error
+          setIsModalVisible(true);
         },
         {
           enableHighAccuracy: true,
@@ -67,7 +67,7 @@ function MapRender() {
     }
 
     socket.on("recieve", (data) => {
-      const { id, latitude, longitude } = data;
+      const { id, userName, latitude, longitude } = data;
 
       setMarkers((prevMarkers) => {
         const updatedMarkers = prevMarkers.filter((marker) => marker.id !== id);
@@ -87,11 +87,18 @@ function MapRender() {
 
         const newMarker = L.marker([latitude, longitude], {
           id,
+          name: userName,
           icon: customIcon,
         }).addTo(map);
         return [
           ...updatedMarkers,
-          { id, lat: latitude, lng: longitude, marker: newMarker, name: "" },
+          {
+            id,
+            lat: latitude,
+            lng: longitude,
+            marker: newMarker,
+            name: userName,
+          },
         ];
       });
     });
@@ -120,6 +127,14 @@ function MapRender() {
       });
     });
 
+    socket.on("update-name", ({ id, name }) => {
+      setMarkers((prevMarkers) => {
+        return prevMarkers.map((markerData) =>
+          markerData.id === id ? { ...markerData, name } : markerData
+        );
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -127,7 +142,10 @@ function MapRender() {
 
   const handleNameSubmit = (name) => {
     setUserName(name);
-    setShowNameForm(false); // Hide the NameForm after submission
+    setShowNameForm(false); 
+
+    const socket = io(`${apiUrl}`);
+    socket.emit("update-name", { name });
   };
 
   const handleOk = () => {
@@ -154,16 +172,16 @@ function MapRender() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution="&copy; Heet Boda"
             />
-           {markers.map((markerData) => (
+            {markers.map((markerData) => (
               <Marker
                 key={markerData.id}
                 position={[markerData.lat, markerData.lng]}
                 icon={markerData.marker.options.icon}
               >
                 <Tooltip permanent direction="top" offset={[0, -20]}>
-                  {userName
-                    ? `User Name: ${userName}`
-                    : `User ID: ${markerData.id}`}{" "}
+                  {markerData.name
+                    ? `User Name: ${markerData.name}`
+                    : `User ID: ${markerData.id}`}
                   <br />
                   Latitude: {markerData.lat}, Longitude: {markerData.lng}
                 </Tooltip>
